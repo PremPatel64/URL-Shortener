@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Trimmer</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Chart.js CDN for modern, premium data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="logo">⚡ Trimmer</a>
+      <ul class="nav-links">
+        <li><button id="theme-toggle-btn" class="theme-toggle">☀️</button></li>
+        <li><span id="user-greeting" style="font-weight: 500;">Hi, User</span></li>
+        <li><button onclick="logoutUser()" class="btn btn-secondary" style="padding: 8px 16px;">Logout</button></li>
+      </ul>
+    </div>
+  </header>
+
+  <main>
+    <!-- Top-Level Agregated Stats Panel -->
+    <div class="stats-container">
+      <div class="panel stat-card">
+        <h3>Total Links</h3>
+        <div id="stat-total-urls" class="value">0</div>
+      </div>
+      <div class="panel stat-card">
+        <h3>Total Clicks</h3>
+        <div id="stat-total-clicks" class="value">0</div>
+      </div>
+      <div class="panel stat-card">
+        <h3>Clicks Today</h3>
+        <div id="stat-today-clicks" class="value">0</div>
+      </div>
+      <div class="panel stat-card">
+        <h3>Clicks Weekly</h3>
+        <div id="stat-weekly-clicks" class="value">0</div>
+      </div>
+    </div>
+
+    <!-- Main Grid: Shorten URL form + URLs Table -->
+    <div class="dashboard-grid">
+      
+      <!-- Left Side: Shorten Form Panel -->
+      <div class="panel input-panel">
+        <h2>Shorten a new link</h2>
+        
+        <div id="form-alert" class="alert" style="display: none;"></div>
+
+        <form id="shorten-form">
+          <div class="form-group">
+            <label for="originalUrl">Destination URL</label>
+            <input type="url" id="originalUrl" required placeholder="https://example.com/very/long/destination/path">
+          </div>
+
+          <div class="form-group">
+            <label for="customAlias">Custom Alias (Optional)</label>
+            <input type="text" id="customAlias" placeholder="my-custom-slug">
+          </div>
+
+          <div class="form-group">
+            <label for="expiresAt">Expiration Date (Optional)</label>
+            <input type="datetime-local" id="expiresAt">
+          </div>
+
+          <button type="submit" class="btn btn-primary url-form-btn">Generate Short Link</button>
+        </form>
+      </div>
+
+      <!-- Right Side: Links Database Panel -->
+      <div class="panel">
+        <div class="controls-bar">
+          <div class="search-filter-group">
+            <input type="text" id="search-input" class="control-input search-input" placeholder="Search by URL, alias...">
+            
+            <select id="filter-favorite" class="control-input">
+              <option value="">All Links</option>
+              <option value="true">Favorites ⭐</option>
+            </select>
+
+            <select id="filter-status" class="control-input">
+              <option value="">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="expired">Expired</option>
+            </select>
+
+            <select id="sort-select" class="control-input">
+              <option value="-createdAt">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="most-clicked">Most Clicked</option>
+              <option value="least-clicked">Least Clicked</option>
+              <option value="alphabetical">Alphabetical</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="urls-list-wrapper">
+          <table class="urls-table">
+            <thead>
+              <tr>
+                <th>Original URL</th>
+                <th>Short Link</th>
+                <th>Clicks</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="urls-table-body">
+              <!-- Dynamically populated rows -->
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-secondary);">Loading links database...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-controls">
+          <button id="prev-page-btn" class="btn btn-secondary">&larr; Prev</button>
+          <span id="page-indicator" class="page-info">Page 1 of 1</span>
+          <button id="next-page-btn" class="btn btn-secondary">Next &rarr;</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal: URL Analytics Detail View -->
+  <div id="analytics-modal" class="modal-overlay">
+    <div class="panel modal">
+      <div class="modal-header">
+        <h2 id="modal-title">Link Analytics</h2>
+        <button class="modal-close" onclick="closeAnalyticsModal()">&times;</button>
+      </div>
+      
+      <div class="url-details-container">
+        <!-- QR Code Column -->
+        <div class="qr-code-box">
+          <img id="modal-qr-image" src="" alt="QR Code">
+          <a id="modal-qr-download" href="" download="qrcode.png" class="btn btn-secondary" style="width: 100%; text-align: center; padding: 8px;">Download QR</a>
+        </div>
+
+        <!-- Click Stats Metrics Column -->
+        <div style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 4px;">Destination URL</p>
+            <p id="modal-original-url" style="font-weight: 500; word-break: break-all; margin-bottom: 16px;">https://example.com</p>
+
+            <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 4px;">Short Link</p>
+            <a id="modal-short-url" href="" target="_blank" style="font-weight: 600; font-size: 1.1rem; margin-bottom: 16px; display: inline-block;">http://localhost:5000/xyz</a>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-top: 16px;">
+            <button id="modal-csv-export" class="btn btn-primary">Export CSV Analytics</button>
+            <button onclick="closeAnalyticsModal()" class="btn btn-secondary">Close</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Visualization Section -->
+      <div class="charts-grid">
+        <div class="chart-wrapper">
+          <canvas id="browsers-chart"></canvas>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="countries-chart"></canvas>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="devices-chart"></canvas>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="os-chart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Edit Alias View -->
+  <div id="edit-alias-modal" class="modal-overlay">
+    <div class="panel modal" style="max-width: 450px;">
+      <div class="modal-header">
+        <h2>Edit Custom Alias</h2>
+        <button class="modal-close" onclick="closeEditModal()">&times;</button>
+      </div>
+      
+      <div id="edit-alert" class="alert alert-danger" style="display: none;"></div>
+
+      <form id="edit-alias-form">
+        <input type="hidden" id="edit-url-id">
+        <div class="form-group">
+          <label for="edit-alias-input">New Custom Alias</label>
+          <input type="text" id="edit-alias-input" required placeholder="new-slug-name">
+        </div>
+        
+        <div style="display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end;">
+          <button type="button" onclick="closeEditModal()" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Alias</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 Trimmer URL Shortener. Built with clean Node.js and MongoDB Atlas architecture.</p>
+  </footer>
+
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

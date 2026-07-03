@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trimmer | Premium URL Shortener</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="logo">⚡ Trimmer</a>
+      <ul class="nav-links">
+        <li><button id="theme-toggle-btn" class="theme-toggle">☀️</button></li>
+        <li id="nav-auth-links">
+          <!-- Dynamically populated based on login state -->
+          <a href="login.html" class="btn btn-secondary">Login</a>
+          <a href="register.html" class="btn btn-primary" style="margin-left: 10px;">Register</a>
+        </li>
+      </ul>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Shorten your links, <span>expand your reach</span>.</h1>
+      <p>Trimmer is a production-grade URL shortening platform providing blazing-fast redirects, custom aliases, dynamic QR codes, and real-time click distributions.</p>
+      <div id="hero-cta-container">
+        <a href="register.html" class="btn btn-primary">Get Started for Free</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Trimmer URL Shortener. Built with clean Node.js and MongoDB Atlas architecture.</p>
+  </footer>
+
+  <script src="js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const ctaContainer = document.getElementById('hero-cta-container');
+      const authLinks = document.getElementById('nav-auth-links');
+      
+      if (isAuthenticated()) {
+        ctaContainer.innerHTML = `<a href="dashboard.html" class="btn btn-primary">Go to Dashboard</a>`;
+        authLinks.innerHTML = `
+          <a href="dashboard.html" class="btn btn-secondary">Dashboard</a>
+          <button onclick="logoutUser()" class="btn btn-danger" style="margin-left: 10px;">Logout</button>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Trimmer</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="logo">⚡ Trimmer</a>
+      <ul class="nav-links">
+        <li><button id="theme-toggle-btn" class="theme-toggle">☀️</button></li>
+      </ul>
+    </div>
+  </header>
+
+  <main class="auth-container">
+    <div class="panel auth-card">
+      <h2>Welcome Back</h2>
+      <p class="subtitle">Enter your credentials to access your links dashboard</p>
+
+      <div id="alert-box" class="alert alert-danger" style="display: none;"></div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" required placeholder="name@example.com">
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required placeholder="••••••••">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Sign In</button>
+      </form>
+
+      <div class="auth-footer">
+        Don't have an account? <a href="register.html">Create one</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Trimmer URL Shortener. Built with clean Node.js and MongoDB Atlas architecture.</p>
+  </footer>
+
+  <script src="js/auth.js"></script>
+  <script>
+    // Guest route guard
+    guardGuestRoute();
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const alertBox = document.getElementById('alert-box');
+      
+      alertBox.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok || !data.success) {
+          alertBox.innerText = data.message || 'Login failed. Please check your credentials.';
+          alertBox.style.display = 'block';
+          return;
+        }
+
+        // Store JWT token and User Details
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.data.user));
+
+        // Redirect to dashboard
+        window.location.href = 'dashboard.html';
+      } catch (error) {
+        alertBox.innerText = 'Unable to connect to the server. Please try again later.';
+        alertBox.style.display = 'block';
+        console.error('Login error:', error);
+      }
+    });
+  </script>
+</body>
+</html>
